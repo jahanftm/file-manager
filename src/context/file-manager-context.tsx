@@ -1,0 +1,118 @@
+import { createContext, useReducer, useContext, type ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { FileNode, State, Action } from "../types/context.type.ts";
+import { validateNode } from "../utils/validation.ts";
+import toast from "react-hot-toast";
+import { initialState } from "./file-manager-context.consts.ts";
+
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'ADD_FILE': {
+      function addFileRecursively(node: FileNode): FileNode {
+        if (node.id === action.parentId && node.type === 'folder') {
+          const validation = validateNode(action.name, 'file', node.children || [], action.extension);
+          if (!validation.valid) {
+            toast.error(validation.message || 'Validation failed');
+            return node;
+          }
+          const newFile: FileNode = {
+            id: uuidv4(),
+            name: action.name,
+            type: 'file',
+            extension: action.extension,
+          };
+          return { ...node, children: [...(node.children || []), newFile] };
+        }
+        if (node.children) {
+          return { ...node, children: node.children.map(addFileRecursively) };
+        }
+        return node;
+      }
+      return { root: addFileRecursively(state.root) };
+    }
+
+    case 'ADD_FOLDER': {
+      function addFolderRecursively(node: FileNode): FileNode {
+        if (node.id === action.parentId && node.type === 'folder') {
+          const validation = validateNode(action.name, 'folder', node.children || []);
+          if (!validation.valid) {
+            toast.error(validation.message || 'Validation failed');
+            return node;
+          }
+          const newFolder: FileNode = {
+            id: uuidv4(),
+            name: action.name,
+            type: 'folder',
+            children: [],
+          };
+          return { ...node, children: [...(node.children || []), newFolder] };
+        }
+        if (node.children) {
+          return { ...node, children: node.children.map(addFolderRecursively) };
+        }
+        return node;
+      }
+      return { root: addFolderRecursively(state.root) };
+    }
+
+    case 'DELETE_NODE': {
+      function deleteRecursively(node: FileNode): FileNode | null {
+        if (node.id === action.id) {
+          if (node.name === 'Root') {
+            toast.error('Cannot delete root folder');
+            return node;
+          }
+          return null;
+        }
+        if (node.children) {
+          const newChildren = node.children
+            .map(deleteRecursively)
+            .filter(Boolean) as FileNode[];
+          return { ...node, children: newChildren };
+        }
+        return node;
+      }
+      return { root: deleteRecursively(state.root)! };
+    }
+
+    case 'EDIT_NODE': {
+      function editRecursively(node: FileNode): FileNode {
+        if (node.id === action.id) {
+          const validation = validateNode(action.name, node.type, node.children || [], action.extension);
+          if (!validation.valid) {
+            toast.error(validation.message || 'Validation failed');
+            return node;
+          }
+          return { ...node, name: action.name, extension: action.extension ?? node.extension };
+        }
+        if (node.children) {
+          return { ...node, children: node.children.map(editRecursively) };
+        }
+        return node;
+      }
+      return { root: editRecursively(state.root) };
+    }
+
+    default:
+      return state;
+  }
+}
+
+const FileManagerContext = createContext<{
+  state: State;
+  dispatch: React.Dispatch<Action>;
+}>({ state: initialState, dispatch: () => null });
+
+export function FileManagerProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  return (
+    <FileManagerContext.Provider value={{ state, dispatch }}>
+      {children}
+    </FileManagerContext.Provider>
+  );
+}
+
+export function useFileManager() {
+  return useContext(FileManagerContext);
+}

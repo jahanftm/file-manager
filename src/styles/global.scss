@@ -8,5 +8,13 @@
 .container {
   display: grid;
   grid-template-columns: 280px 1fr;
-  height: 100vh
+  height: 100vh;
+}
+
+header {
+  background-color: #138a81;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px 12px 2px 2px;
+  margin-bottom: 2rem;
 }

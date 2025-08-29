@@ -6,7 +6,7 @@ import App from './App';
 
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>  // Comment out to prevent double alerts in development
     <App />
-  </StrictMode>,
+  // </StrictMode>
 )
