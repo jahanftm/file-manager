@@ -75,15 +75,31 @@ function FileContainer() {
     openEditModal(nodeId);
   }, [openEditModal]);
 
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    handleDelete(nodeId);
+  }, [handleDelete]);
+
+  const handleEditNode = useCallback((nodeId: string) => {
+    handleEdit(nodeId);
+  }, [handleEdit]);
+
+  const handleAddFileToNode = useCallback((parentId: string) => {
+    openCreateModal("file", parentId);
+  }, [openCreateModal]);
+
+  const handleAddFolderToNode = useCallback((parentId: string) => {
+    openCreateModal("folder", parentId);
+  }, [openCreateModal]);
+
   return (
     <div>
       <NodeTree
         node={state.root}
         rootId={state.root.id}
-        onAddFile={(parentId) => openCreateModal("file", parentId)}
-        onAddFolder={(parentId) => openCreateModal("folder", parentId)}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
+        onAddFile={handleAddFileToNode}
+        onAddFolder={handleAddFolderToNode}
+        onDelete={handleDeleteNode}
+        onEdit={handleEditNode}
       />
 
       <NodeDialog

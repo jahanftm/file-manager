@@ -1,9 +1,9 @@
-import type { FileExtension } from "./file-item.types.ts";
+import type { FileExtension, FileNodeType } from "./file-item.types.ts";
 
 export type FileNode = {
   id: string;
   name: string;
-  type: 'file' | 'folder';
+  type: FileNodeType;
   extension?: FileExtension;
   children?: FileNode[];
 };

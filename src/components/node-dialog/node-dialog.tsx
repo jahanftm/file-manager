@@ -2,33 +2,35 @@ import s from './node-dialog.module.scss';
 import { useState, useEffect, useCallback } from "react";
 import type { NodeDialogProps } from "../../types/node-tree.ts";
 import { fileExtensions } from "./node-dialog.const.ts";
+import type { FileExtension } from "../../types/file-item.types.ts";
 
 
 function NodeDialog({ isOpen, onClose, onConfirm, type, mode, initialData }: NodeDialogProps) {
   const [name, setName] = useState('');
-  const [extension, setExtension] = useState('');
+  const [extension, setExtension] = useState<FileExtension | undefined>(undefined);
 
   // Initialize form data when modal opens
   useEffect(() => {
-    if (isOpen && initialData) {
-      setName(initialData.name);
-      initialData.extension && setExtension(initialData.extension);
-    }
     if (isOpen) {
-      setName('');
-      setExtension(fileExtensions[0]);
+      if (initialData) {
+        setName(initialData.name);
+        initialData.extension && setExtension(initialData.extension);
+      } else {
+        setName('');
+        setExtension(fileExtensions[0]);
+      }
     }
   }, [isOpen, initialData]);
 
   const handleConfirm = useCallback(() => {
     onConfirm(name, type === 'file' ? extension : undefined);
     setName('');
-    setExtension('');
+    setExtension(undefined);
   }, [onConfirm, name, extension, type]);
 
   const handleClose = useCallback(() => {
     setName('');
-    setExtension('');
+    setExtension(undefined);
     onClose();
   }, [onClose]);
 
@@ -37,7 +39,7 @@ function NodeDialog({ isOpen, onClose, onConfirm, type, mode, initialData }: Nod
   }, []);
 
   const handleExtensionChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setExtension(e.target.value);
+    setExtension(e.target.value as FileExtension);
   }, []);
 
   if (!isOpen) return null;
