@@ -5,7 +5,6 @@ import { useState, useCallback } from "react";
 import { findNodeById } from "../../utils/find-node.ts";
 import { showFolderDeleteConfirmToast } from "../confiramation-dialog/confirmation-dialog.tsx";
 import type { FileExtension } from "../../types/file-item.types.ts";
-import toast from "react-hot-toast";
 
 function FileContainer() {
   const { state, dispatch } = useFileManager();
@@ -42,21 +41,15 @@ function FileContainer() {
 
   const handleConfirm = useCallback((name: string, extension?: FileExtension) => {
     if (modalMode === "create" && currentParentId) {
-      // Creating new file/folder
+
       if (modalType === "file" && extension) {
         dispatch({ type: "ADD_FILE", parentId: currentParentId, name, extension });
-        toast.success(`File "${name}.${extension}" created successfully!`);
       }
       if (modalType === "folder") {
         dispatch({ type: "ADD_FOLDER", parentId: currentParentId, name });
-        toast.success(`Folder "${name}" created successfully!`);
       }
     } else if (modalMode === "edit" && editingNode) {
-      // Editing existing file/folder
       dispatch({ type: 'EDIT_NODE', id: editingNode.id, name, extension });
-      const itemType = editingNode.extension ? 'file' : 'folder';
-      const extensionText = editingNode.extension ? `.${editingNode.extension}` : '';
-      toast.success(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} "${editingNode.name}${extensionText}" renamed to "${name}${extension ? '.' + extension : ''}"`);
     }
 
     closeModal();
