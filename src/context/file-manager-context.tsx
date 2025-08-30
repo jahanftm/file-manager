@@ -9,18 +9,19 @@ import { useLocalStorage } from "../hooks/useLocalStorage.ts";
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'ADD_FILE': {
+      const addFileAction = action as Extract<Action, { type: 'ADD_FILE' }>;
       function addFileRecursively(node: FileNode): FileNode {
-        if (node.id === action.parentId && node.type === 'folder') {
-          const validation = validateNode(action.name, 'file', node.children || [], action.extension);
+        if (node.id === addFileAction.parentId && node.type === 'folder') {
+          const validation = validateNode(addFileAction.name, 'file', node.children || [], addFileAction.extension);
           if (!validation.valid) {
             toast.error(validation.message || 'Validation failed');
             return node;
           }
           const newFile: FileNode = {
             id: uuidv4(),
-            name: action.name,
+            name: addFileAction.name,
             type: 'file',
-            extension: action.extension,
+            extension: addFileAction.extension,
           };
           return { ...node, children: [...(node.children || []), newFile] };
         }
@@ -33,16 +34,17 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'ADD_FOLDER': {
+      const addFolderAction = action as Extract<Action, { type: 'ADD_FOLDER' }>;
       function addFolderRecursively(node: FileNode): FileNode {
-        if (node.id === action.parentId && node.type === 'folder') {
-          const validation = validateNode(action.name, 'folder', node.children || []);
+        if (node.id === addFolderAction.parentId && node.type === 'folder') {
+          const validation = validateNode(addFolderAction.name, 'folder', node.children || []);
           if (!validation.valid) {
             toast.error(validation.message || 'Validation failed');
             return node;
           }
           const newFolder: FileNode = {
             id: uuidv4(),
-            name: action.name,
+            name: addFolderAction.name,
             type: 'folder',
             children: [],
           };
@@ -57,8 +59,9 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'DELETE_NODE': {
+      const deleteAction = action as Extract<Action, { type: 'DELETE_NODE' }>;
       function deleteRecursively(node: FileNode): FileNode | null {
-        if (node.id === action.id) {
+        if (node.id === deleteAction.id) {
           if (node.name === 'Root') {
             toast.error('Cannot delete root folder');
             return node;
@@ -77,14 +80,15 @@ function reducer(state: State, action: Action): State {
     }
 
     case 'EDIT_NODE': {
+      const editAction = action as Extract<Action, { type: 'EDIT_NODE' }>;
       function editRecursively(node: FileNode): FileNode {
-        if (node.id === action.id) {
-          const validation = validateNode(action.name, node.type, node.children || [], action.extension);
+        if (node.id === editAction.id) {
+          const validation = validateNode(editAction.name, node.type, node.children || [], editAction.extension);
           if (!validation.valid) {
             toast.error(validation.message || 'Validation failed');
             return node;
           }
-          return { ...node, name: action.name, extension: action.extension ?? node.extension };
+          return { ...node, name: editAction.name, extension: editAction.extension ?? node.extension };
         }
         if (node.children) {
           return { ...node, children: node.children.map(editRecursively) };
