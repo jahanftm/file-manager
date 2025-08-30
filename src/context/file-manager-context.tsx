@@ -1,10 +1,10 @@
-import { createContext, useReducer, useContext, type ReactNode } from 'react';
+import { createContext, useReducer, useContext, type ReactNode, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { FileNode, State, Action } from "../types/context.type.ts";
 import { validateNode } from "../utils/validation.ts";
 import toast from "react-hot-toast";
 import { initialState } from "./file-manager-context.consts.ts";
-
+import { useLocalStorage } from "../hooks/useLocalStorage.ts";
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -105,7 +105,13 @@ const FileManagerContext = createContext<{
 }>({ state: initialState, dispatch: () => null });
 
 export function FileManagerProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [storedRoot, setStoredRoot] = useLocalStorage('file-manager-tree', initialState.root);
+  const [state, dispatch] = useReducer(reducer, { root: storedRoot });
+
+  useEffect(() => {
+    setStoredRoot(state.root);
+  }, [state.root, setStoredRoot]);
+
   return (
     <FileManagerContext.Provider value={{ state, dispatch }}>
       {children}
